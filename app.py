@@ -85,24 +85,53 @@ with st.sidebar:
     # Model loading section
     st.subheader("Model Management")
     
-    # Checkpoint uploader
-    checkpoint_file = st.file_uploader(
-        "Upload Checkpoint (.pt)",
-        type=['pt'],
-        help="Upload a trained RetNet checkpoint file"
+    # Checkpoint source selection
+    checkpoint_source = st.radio(
+        "Checkpoint Source",
+        ["Pre-loaded Checkpoints", "Upload from System"],
+        help="Choose whether to load a pre-existing checkpoint or upload a new one"
     )
     
-    if checkpoint_file is not None:
+    checkpoint_path = None
+    
+    if checkpoint_source == "Pre-loaded Checkpoints":
+        # Get list of checkpoints from checkpoints folder
+        checkpoint_dir = "checkpoints"
+        if os.path.exists(checkpoint_dir):
+            checkpoint_files = [f for f in os.listdir(checkpoint_dir) if f.endswith('.pt')]
+            if checkpoint_files:
+                selected_checkpoint = st.selectbox(
+                    "Select Checkpoint",
+                    checkpoint_files,
+                    help="Choose from available pre-loaded checkpoints"
+                )
+                checkpoint_path = os.path.join(checkpoint_dir, selected_checkpoint)
+            else:
+                st.warning("No checkpoint files found in the checkpoints folder.")
+        else:
+            st.warning("Checkpoints folder not found.")
+    else:
+        # Checkpoint uploader
+        checkpoint_file = st.file_uploader(
+            "Upload Checkpoint (.pt)",
+            type=['pt'],
+            help="Upload a trained RetNet checkpoint file"
+        )
+        
+        if checkpoint_file is not None:
+            # Save uploaded file temporarily
+            temp_path = f"temp_checkpoint_{int(time.time())}.pt"
+            with open(temp_path, 'wb') as f:
+                f.write(checkpoint_file.read())
+            checkpoint_path = temp_path
+    
+    # Load checkpoint button (works for both sources)
+    if checkpoint_path is not None:
         if st.button("Load Checkpoint", use_container_width=True):
             with st.spinner("Loading checkpoint..."):
                 try:
-                    # Save uploaded file temporarily
-                    temp_path = f"temp_checkpoint_{int(time.time())}.pt"
-                    with open(temp_path, 'wb') as f:
-                        f.write(checkpoint_file.read())
-                    
                     # Load checkpoint
-                    model, config, checkpoint_info = load_checkpoint(temp_path, st.session_state.device)
+                    model, config, checkpoint_info = load_checkpoint(checkpoint_path, st.session_state.device)
                     
                     # Initialize tokenizer
                     tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
@@ -114,12 +143,17 @@ with st.sidebar:
                     st.session_state.tokenizer = tokenizer
                     st.session_state.checkpoint_info = checkpoint_info
                     
-                    # Clean up temp file
-                    os.remove(temp_path)
+                    # Clean up temp file if it was uploaded
+                    if checkpoint_source == "Upload from System" and os.path.exists(checkpoint_path):
+                        os.remove(checkpoint_path)
                     
                     st.success(f"Checkpoint loaded! Step: {checkpoint_info['global_step']}")
                 except Exception as e:
                     st.error(f"Error loading checkpoint: {str(e)}")
+                    # Clean up temp file on error
+                    if checkpoint_source == "Upload from System" and checkpoint_path.startswith("temp_checkpoint_"):
+                        if os.path.exists(checkpoint_path):
+                            os.remove(checkpoint_path)
     
     # Initialize new model
     if st.button("Initialize New Model", use_container_width=True):
