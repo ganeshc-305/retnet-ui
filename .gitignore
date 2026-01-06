@@ -6,3 +6,7 @@ checkpoints/
 
 # Virtual environment
 venv/
+
+.devcontainer/
+
+nohup.out
