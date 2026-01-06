@@ -1,0 +1,10 @@
+[server]
+# Increase max upload size to 3000 MB for large checkpoint files
+maxUploadSize = 3000
+
+# Enable file watcher for auto-reload during development
+fileWatcherType = "auto"
+
+[browser]
+# Automatically open browser when app starts
+gatherUsageStats = false
