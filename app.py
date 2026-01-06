@@ -1,7 +1,6 @@
 """
 RetNet LLM Streamlit Application
 A comprehensive interface for text generation and model training.
-updated
 
 """
 
@@ -20,21 +19,12 @@ from training_engine import LocalTextDataset, TrainingEngine
 
 # Page configuration
 st.set_page_config(
-    page_title="RetNet LLM Studio",
+    page_title="RetNet UI",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # Note: Max upload size (3000 MB) is configured in .streamlit/config.toml
-
-# Minimal CSS
-st.markdown("""
-<style>
-    .stButton>button {
-        width: 100%;
-    }
-</style>
-""", unsafe_allow_html=True)
 
 
 # Initialize session state
@@ -63,7 +53,16 @@ init_session_state()
 
 # Sidebar
 with st.sidebar:
-    st.header("RetNet Studio")
+    # Adjust sidebar padding to move content to top left
+    st.markdown("""
+        <style>
+            [data-testid="stSidebar"] > div:first-child {
+                padding-top: 1rem;
+            }
+        </style>
+    """, unsafe_allow_html=True)
+    
+    st.title("Settings")
     
     st.subheader("Configuration")
     
@@ -191,7 +190,7 @@ with st.sidebar:
 
 
 # Main content
-st.title("RetNet Language Model Studio")
+st.title("RetNet UI Dashboard")
 
 # Create tabs
 tab1, tab2, tab3 = st.tabs(["Chat & Generation", "Training", "Model Info"])
@@ -482,7 +481,6 @@ with tab2:
                             y=losses,
                             mode='lines',
                             name='Training Loss',
-                            line=dict(color='#667eea', width=2)
                         ))
                         fig.update_layout(
                             title="Training Loss",
@@ -561,7 +559,7 @@ with tab3:
 st.markdown("---")
 st.markdown(
     '<div style="text-align: center; color: #666; padding: 1rem;">'
-    'RetNet LLM Studio | Built with Streamlit & PyTorch'
+    'RetNet UI'
     '</div>',
     unsafe_allow_html=True
 )
