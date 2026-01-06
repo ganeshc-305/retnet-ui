@@ -43,6 +43,11 @@ def load_checkpoint(checkpoint_path: str, device: str = 'cpu') -> Tuple[RetNet, 
         model = RetNet(config)
         model.load_state_dict(checkpoint['model_state_dict'])
         model.to(device)
+        
+        # Ensure float32 precision for CPU execution
+        if device == 'cpu':
+            model.float()
+            
         model.eval()
         
         # Extract checkpoint metadata

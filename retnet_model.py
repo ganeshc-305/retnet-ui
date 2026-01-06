@@ -362,7 +362,10 @@ class RetNet(nn.Module):
             # Apply repetition penalty
             if repetition_penalty != 1.0:
                 for token_id in set(generated[0].tolist()):
-                    logits[0, token_id] /= repetition_penalty
+                    if logits[0, token_id] < 0:
+                        logits[0, token_id] *= repetition_penalty
+                    else:
+                        logits[0, token_id] /= repetition_penalty
 
             # Top-k filtering
             if top_k is not None:
